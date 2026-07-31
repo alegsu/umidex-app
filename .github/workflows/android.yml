@@ -36,7 +36,20 @@ jobs:
       - name: Compilazione APK
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --stacktrace > build_output.log 2>&1 || true
+
+      - name: Caricamento Build Log
+        uses: actions/upload-artifact@v4
+        with:
+          name: Build-Log
+          path: build_output.log
+
+      - name: Fail se la build è fallita
+        run: |
+          if ! grep -q "BUILD SUCCESSFUL" build_output.log; then
+            echo "Build fallita, controlla il log."
+            exit 1
+          fi
 
       - name: Caricamento APK come Artefatto del Run
         uses: actions/upload-artifact@v4
