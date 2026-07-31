@@ -16,8 +16,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,7 +26,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -98,17 +95,6 @@ class MainActivity : ComponentActivity() {
             HumidexDarkTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = DarkBackground) {
                     val isRefreshing by viewModel.isRefreshing.collectAsState()
-                    val pullState  = rememberPullToRefreshState()
-
-                    // Triggera refresh quando l'utente fa pull
-                    if (pullState.isRefreshing) {
-                        LaunchedEffect(Unit) { viewModel.refresh() }
-                    }
-                    // Togli lo spinner quando il ViewModel ha finito
-                    LaunchedEffect(isRefreshing) {
-                        if (!isRefreshing) pullState.endRefresh()
-                    }
-
                     Scaffold(
                         containerColor = DarkBackground,
                         topBar = {
@@ -150,20 +136,11 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                     ) { innerPadding ->
-                        Box(
-                            Modifier
-                                .padding(innerPadding)
-                                .nestedScroll(pullState.nestedScrollConnection)
-                        ) {
-                            val records by viewModel.allRecords.collectAsState()
-                            HumidexScreen(records = records)
-                            PullToRefreshContainer(
-                                state            = pullState,
-                                modifier         = Modifier.align(Alignment.TopCenter),
-                                containerColor   = DarkSurface,
-                                contentColor     = AccentBlue
-                            )
-                        }
+                        val records by viewModel.allRecords.collectAsState()
+                        HumidexScreen(
+                            modifier = Modifier.padding(innerPadding),
+                            records  = records
+                        )
                     }
                 }
             }
@@ -173,10 +150,10 @@ class MainActivity : ComponentActivity() {
 
 // ─── Schermata principale ────────────────────────────────────────────────────
 @Composable
-fun HumidexScreen(records: List<HumidexEntity>) {
+fun HumidexScreen(modifier: Modifier = Modifier, records: List<HumidexEntity>) {
     val grouped = records.groupBy { it.stationName }
     if (grouped.isEmpty()) {
-        Box(Modifier.fillMaxSize().background(DarkBackground), contentAlignment = Alignment.Center) {
+        Box(modifier.fillMaxSize().background(DarkBackground), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 CircularProgressIndicator(color = AccentBlue)
                 Spacer(Modifier.height(16.dp))
