@@ -15,7 +15,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,6 +30,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -94,6 +99,18 @@ class MainActivity : ComponentActivity() {
         setContent {
             HumidexDarkTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = DarkBackground) {
+                    val isRefreshing by viewModel.isRefreshing.collectAsState()
+                    val pullState  = rememberPullToRefreshState()
+
+                    // Triggera refresh quando l'utente fa pull
+                    if (pullState.isRefreshing) {
+                        LaunchedEffect(Unit) { viewModel.refresh() }
+                    }
+                    // Togli lo spinner quando il ViewModel ha finito
+                    LaunchedEffect(isRefreshing) {
+                        if (!isRefreshing) pullState.endRefresh()
+                    }
+
                     Scaffold(
                         containerColor = DarkBackground,
                         topBar = {
@@ -113,12 +130,41 @@ class MainActivity : ComponentActivity() {
                                         )
                                     }
                                 },
+                                actions = {
+                                    IconButton(onClick = { viewModel.refresh() }) {
+                                        if (isRefreshing) {
+                                            CircularProgressIndicator(
+                                                modifier = Modifier.size(20.dp),
+                                                color    = AccentBlue,
+                                                strokeWidth = 2.dp
+                                            )
+                                        } else {
+                                            Icon(
+                                                Icons.Filled.Refresh,
+                                                contentDescription = "Aggiorna",
+                                                tint = AccentBlue
+                                            )
+                                        }
+                                    }
+                                },
                                 colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkSurface)
                             )
                         }
                     ) { innerPadding ->
-                        val records by viewModel.allRecords.collectAsState()
-                        HumidexScreen(modifier = Modifier.padding(innerPadding), records = records)
+                        Box(
+                            Modifier
+                                .padding(innerPadding)
+                                .nestedScroll(pullState.nestedScrollConnection)
+                        ) {
+                            val records by viewModel.allRecords.collectAsState()
+                            HumidexScreen(records = records)
+                            PullToRefreshContainer(
+                                state            = pullState,
+                                modifier         = Modifier.align(Alignment.TopCenter),
+                                containerColor   = DarkSurface,
+                                contentColor     = AccentBlue
+                            )
+                        }
                     }
                 }
             }
@@ -128,10 +174,10 @@ class MainActivity : ComponentActivity() {
 
 // ─── Schermata principale ────────────────────────────────────────────────────
 @Composable
-fun HumidexScreen(modifier: Modifier = Modifier, records: List<HumidexEntity>) {
+fun HumidexScreen(records: List<HumidexEntity>) {
     val grouped = records.groupBy { it.stationName }
     if (grouped.isEmpty()) {
-        Box(modifier.fillMaxSize().background(DarkBackground), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxSize().background(DarkBackground), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 CircularProgressIndicator(color = AccentBlue)
                 Spacer(Modifier.height(16.dp))
