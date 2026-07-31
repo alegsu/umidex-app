@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -139,10 +137,11 @@ class MainActivity : ComponentActivity() {
                                                 strokeWidth = 2.dp
                                             )
                                         } else {
-                                            Icon(
-                                                Icons.Filled.Refresh,
-                                                contentDescription = "Aggiorna",
-                                                tint = AccentBlue
+                                            Text(
+                                                "↻",
+                                                fontSize = 22.sp,
+                                                color = AccentBlue,
+                                                fontWeight = FontWeight.Bold
                                             )
                                         }
                                     }
