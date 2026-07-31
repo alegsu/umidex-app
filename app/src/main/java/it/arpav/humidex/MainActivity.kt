@@ -111,12 +111,13 @@ fun StationCard(stationName: String, records: List<HumidexEntity>) {
             val validRecords = records.filter { it.humidexValue != null }
             if (validRecords.isNotEmpty()) {
                 val chartEntries = validRecords.mapIndexed { index, entity ->
-                    entryModelOf(index.toFloat(), entity.humidexValue!!.toFloat()).entries.first().first()
+                    com.patrykandpatrick.vico.core.entry.FloatEntry(index.toFloat(), entity.humidexValue!!.toFloat())
                 }
                 if (chartEntries.isNotEmpty()) {
+                    val chartModel = com.patrykandpatrick.vico.core.entry.entryModelOf(*chartEntries.toTypedArray())
                     Chart(
                         chart = lineChart(),
-                        model = com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer(chartEntries).getModel(),
+                        model = chartModel,
                         startAxis = rememberStartAxis(),
                         bottomAxis = rememberBottomAxis(),
                         modifier = Modifier.height(200.dp)
