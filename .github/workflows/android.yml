@@ -47,7 +47,12 @@ jobs:
       - name: Fail se la build è fallita
         run: |
           if ! grep -q "BUILD SUCCESSFUL" build_output.log; then
-            echo "Build fallita, controlla il log."
+            echo "Build fallita, faccio il commit del log nel repo."
+            git config --global user.name "GitHub Action"
+            git config --global user.email "action@github.com"
+            git add build_output.log
+            git commit -m "Upload build log on failure"
+            git push origin master
             exit 1
           fi
 
