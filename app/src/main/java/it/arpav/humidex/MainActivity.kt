@@ -281,12 +281,8 @@ fun StationCard(stationName: String, records: List<HumidexEntity>) {
                 Chart(
                     chart = lineChart(lines = listOf(lineSpec)),
                     model = chartModel,
-                    startAxis = rememberStartAxis(
-                        label = textComponent(color = TextSecondary)
-                    ),
-                    bottomAxis = rememberBottomAxis(
-                        label = textComponent(color = TextSecondary)
-                    ),
+                    startAxis = rememberStartAxis(),
+                    bottomAxis = rememberBottomAxis(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(180.dp)
@@ -307,11 +303,6 @@ fun StationCard(stationName: String, records: List<HumidexEntity>) {
     }
 }
 
-@Composable
-fun textComponent(color: Color) = com.patrykandpatrick.vico.compose.component.textComponent(
-    color = color,
-    textSize = 10.sp
-)
 
 // ─── Chip dati meteo ─────────────────────────────────────────────────────────
 @Composable
