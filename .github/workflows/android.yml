@@ -32,9 +32,6 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: '8.1.1'
-        
-      - name: Genera Gradle Wrapper
-        run: gradle wrapper
 
       - name: Compilazione APK
         run: |
