@@ -28,12 +28,16 @@ import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.line.lineChart
 import com.patrykandpatrick.vico.compose.component.shape.shader.fromBrush
+import com.patrykandpatrick.vico.core.axis.AxisPosition
+import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
 import com.patrykandpatrick.vico.core.chart.line.LineChart
 import com.patrykandpatrick.vico.core.component.shape.shader.DynamicShaders
 import com.patrykandpatrick.vico.core.entry.FloatEntry
 import com.patrykandpatrick.vico.core.entry.entryModelOf
 import it.arpav.humidex.db.HumidexEntity
 import it.arpav.humidex.ui.MainViewModel
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 // ─── Colori scuri del tema ──────────────────────────────────────────────────
 val DarkBackground     = Color(0xFF0D1117)
@@ -264,17 +268,37 @@ fun StationCard(stationName: String, records: List<HumidexEntity>) {
                 Text("Storico", fontSize = 12.sp, color = TextSecondary, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(8.dp))
 
+                // Formatta le etichette timestamp per l'asse X
+                val inputFmt = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+                val shortFmt = SimpleDateFormat("dd/MM HH:mm", Locale.getDefault())
+                val labels = validRecords.map { entity ->
+                    try { shortFmt.format(inputFmt.parse(entity.timestamp)!!) }
+                    catch (_: Exception) { entity.timestamp.take(10) }
+                }
+
+                // Mostra solo N etichette per non sovraffollare l'asse X
+                val maxLabels = 4
+                val step = maxOf(1, labels.size / maxLabels)
+                val dateFormatter = AxisValueFormatter<AxisPosition.Horizontal.Bottom> { value, _ ->
+                    val idx = value.toInt().coerceIn(0, labels.lastIndex)
+                    if (idx % step == 0) labels[idx] else ""
+                }
+
                 val chartEntries = validRecords.mapIndexed { index, entity ->
                     FloatEntry(index.toFloat(), entity.humidexValue!!.toFloat())
                 }
                 val chartModel = entryModelOf(chartEntries)
 
+                // Gradiente orizzontale che cambia colore secondo la scala Humidex punto per punto
+                val perPointColors = validRecords.map { humidexColor(it.humidexValue) }
+                val gradientColors = if (perPointColors.distinct().size == 1)
+                    listOf(perPointColors.first(), perPointColors.first())
+                else perPointColors
+
                 val lineSpec = LineChart.LineSpec(
                     lineColor = hxColor.toArgb(),
                     lineBackgroundShader = DynamicShaders.fromBrush(
-                        Brush.verticalGradient(
-                            listOf(hxColor.copy(alpha = 0.4f), hxColor.copy(alpha = 0f))
-                        )
+                        Brush.horizontalGradient(colors = gradientColors.map { it.copy(alpha = 0.55f) })
                     )
                 )
 
@@ -282,10 +306,10 @@ fun StationCard(stationName: String, records: List<HumidexEntity>) {
                     chart = lineChart(lines = listOf(lineSpec)),
                     model = chartModel,
                     startAxis = rememberStartAxis(),
-                    bottomAxis = rememberBottomAxis(),
+                    bottomAxis = rememberBottomAxis(valueFormatter = dateFormatter),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(180.dp)
+                        .height(200.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .background(DarkBackground)
                         .padding(8.dp)
