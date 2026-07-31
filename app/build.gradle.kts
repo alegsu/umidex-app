@@ -69,8 +69,4 @@ dependencies {
     // WorkManager
     implementation("androidx.work:work-runtime-ktx:2.8.1")
     
-    // Vico (Charts)
-    implementation("com.patrykandpatrick.vico:compose:1.12.0")
-    implementation("com.patrykandpatrick.vico:compose-m3:1.12.0")
-    implementation("com.patrykandpatrick.vico:core:1.12.0")
 }
