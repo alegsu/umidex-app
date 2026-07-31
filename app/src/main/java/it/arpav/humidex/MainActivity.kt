@@ -114,7 +114,7 @@ fun StationCard(stationName: String, records: List<HumidexEntity>) {
                     com.patrykandpatrick.vico.core.entry.FloatEntry(index.toFloat(), entity.humidexValue!!.toFloat())
                 }
                 if (chartEntries.isNotEmpty()) {
-                    val chartModel = com.patrykandpatrick.vico.core.entry.entryModelOf(*chartEntries.toTypedArray())
+                    val chartModel = com.patrykandpatrick.vico.core.entry.entryModelOf(chartEntries)
                     Chart(
                         chart = lineChart(),
                         model = chartModel,
