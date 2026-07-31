@@ -23,6 +23,7 @@ import com.patrykandpatrick.vico.core.entry.entryModelOf
 import it.arpav.humidex.db.HumidexEntity
 import it.arpav.humidex.ui.MainViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
 
@@ -31,22 +32,26 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                Scaffold(
-                    topBar = {
-                        TopAppBar(
-                            title = { Text("ARPAV Humidex") },
-                            colors = TopAppBarDefaults.topAppBarColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                Surface(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Scaffold(
+                        topBar = {
+                            TopAppBar(
+                                title = { Text("ARPAV Humidex") },
+                                colors = TopAppBarDefaults.topAppBarColors(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
                             )
+                        }
+                    ) { innerPadding ->
+                        val records by viewModel.allRecords.collectAsState()
+                        HumidexScreen(
+                            modifier = Modifier.padding(innerPadding),
+                            records = records
                         )
                     }
-                ) { innerPadding ->
-                    val records by viewModel.allRecords.collectAsState()
-                    HumidexScreen(
-                        modifier = Modifier.padding(innerPadding),
-                        records = records
-                    )
                 }
             }
         }
